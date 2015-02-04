@@ -40,6 +40,7 @@ struct DataCategory
 		string name;
 		string category;
 		streampos startPos;
+		int skipCommas;
 		// streampos endPos;
 		streampos columnStart;
 		streampos columnEnd;
@@ -100,6 +101,7 @@ private:
 	fstream fp;
 	vector<DataCategory> subCategories;
 	char startDate;
+	vector<string> catNames;
 	set<string> categoryNames;
 	streampos oneDiff;
 	streampos begin;
