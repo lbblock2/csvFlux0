@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include <string.h>
 #include <set>
 #include <math.h>
 #include <vector>
@@ -18,22 +19,29 @@ using namespace std;
 class FileReader
 {
 public:
-	 FileReader(char filename[]) : numcols(1) {
+	 FileReader(char filename[]) : numcols(1), numLines(0) {
 	 	fp.open(filename, ios::in);
 	 	if(!fp) {
 	 		cout << "sorry, file not found" << endl;
 			return;
 	 	}
+	 	//add to filename four outfile
+	 	strcat(filename, "out");
+	 	outfile.open(filename, ios::out);
 	 	getNumCols();
 	 	// printFile();
 	 	skipLine();
 	 	createCategories();
 	 	DataColumn dc;
 	 	dc.nColumnsSkipped = 2;
-	 	getColumn(dc);
+	 	createColumns();
+	 	getColumn(columns[3]);
 	 }
 
 	~ FileReader() {
+		outfile.seekp(ios::beg);
+		outfile << numLines << endl;
+		outfile.close();
 		fp.close();
 	}
 
@@ -51,8 +59,11 @@ public:
 			for (int i = 0; i < dc.nColumnsSkipped; i++) getline(fp, line, ',');
 			for(int i = 0; i < kColWidth; i++) {
 				getline(fp, line, ',');
-				cout << line;
+				outfile << line << "    ";
+				cout << line << "     ";
 			}
+			outfile << endl;
+			numLines++;
 			cout << endl;
 			for (int i = 0; i < (numcols - kColWidth - dc.nColumnsSkipped); i++) getline(fp, line, ',');
 		}
@@ -74,12 +85,14 @@ public:
 
 private:
 	vector<int> columnCommas;
+	int numLines;
 	vector<DataColumn> columns;
 	set<string> categoryNames;
 	int numcols;
 
 	//map<string, DataColumn> columnMap;
 	fstream fp;
+	fstream outfile;
 
 	struct Category
 	{
@@ -121,10 +134,23 @@ private:
 				cout << line << endl;
 			}
 		}
-		cout << categoryNames.size() << endl;
 	}
 
-
+	void createColumns() {
+		string line;
+		fp.clear();
+		fp.seekg(ios::beg);
+		for (int i = 0; i < kDataLine - 2; i++) skipLine();
+		for (int i = 0; i < numcols + 1; i++) {
+			DataColumn datac;
+			getline(fp, line, ',');
+			datac.name = line;
+			datac.nColumnsSkipped = i-1;
+			i++;
+			columns.push_back(datac);
+			getline(fp, line, ',');
+		}
+	}
 
 
 };
